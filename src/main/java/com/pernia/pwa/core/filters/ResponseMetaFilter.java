@@ -2,6 +2,7 @@ package com.pernia.pwa.core.filters;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -49,7 +50,10 @@ public class ResponseMetaFilter extends BaseFilter implements ContainerResponseF
 
   private long getTimeTaken() {
     long endTime = System.currentTimeMillis();
-    long startTime = (Long) servletRequestProvider.get().getAttribute(RQ_REQUEST_TIME);
+    Long startTime = (Long) servletRequestProvider.get().getAttribute(RQ_REQUEST_TIME);
+    if (Objects.isNull(startTime)) {
+      return 0;
+    }
     return endTime - startTime;
   }
 }

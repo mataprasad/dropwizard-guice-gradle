@@ -54,5 +54,5 @@ dependencies {
 run {
     dependsOn build
     args 'server', "$configFile"
-    debug false
+    debug true
 }
