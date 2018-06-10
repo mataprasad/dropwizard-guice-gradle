@@ -1,0 +1,84 @@
+buildscript {
+  repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath "com.diffplug.gradle.spotless:spotless:2.4.1"
+  }
+}
+
+project.ext {
+  failBuildOnCheckSyleWarning = pFailBuildOnCheckSyleWarning
+  bypassChecker = "true" == System.getProperty("BPC")
+}
+
+// Checkstyle
+apply plugin: 'checkstyle'
+checkstyle {
+  ignoreFailures = failBuildOnCheckSyleWarning.toBoolean()
+  configFile = rootProject.file('codequality/checkstyle.xml')
+  toolVersion = '8.1'
+}
+
+tasks.withType(Checkstyle).each { checkstyleTask ->
+  checkstyleTask.doLast {
+    reports.all { report ->
+      def checkStyleMaxErrors=project.hasProperty('pcheckStyleMaxErrors')?project.property('pcheckStyleMaxErrors'):100
+      def outputFile = report.destination
+      def count = outputFile.text.count("<error ")
+      if (count > Integer.valueOf(checkStyleMaxErrors)) {
+        throw new GradleException("Checkstyle error count should not exceed  $checkStyleMaxErrors. Current count is $count . For more info check $outputFile")
+      }
+      if (failBuildOnCheckSyleWarning.toBoolean() && outputFile.exists() && outputFile.text.contains("<error ")) {
+        throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
+      }
+    }
+  }
+}
+
+// Spotless
+apply plugin: com.diffplug.gradle.spotless.SpotlessPlugin
+spotless {
+  java {
+    target project.fileTree(project.rootDir) {
+      include '**/*.java'
+      exclude '**/generated/'
+      exclude '**/package-info.java'
+    }
+    importOrder(['java', 'javax', 'org', 'com', 'com.pernia', ''])
+    eclipseFormatFile 'codequality/eclipse-google-formatter.xml'
+  }
+  format 'misc', {
+    target '**/*.md', '**/*.sh'
+    indentWithSpaces(2)
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+  freshmark {}
+}
+
+// checker and other annotation processors
+allprojects {
+  if(!bypassChecker) {
+    def processors = [
+      'lombok.launch.AnnotationProcessorHider\$AnnotationProcessor',
+      'org.checkerframework.checker.nullness.NullnessChecker',
+      'org.checkerframework.checker.lock.LockChecker',
+      'org.checkerframework.checker.tainting.TaintingChecker',
+      'org.checkerframework.checker.interning.InterningChecker',
+      'org.checkerframework.checker.regex.RegexChecker'
+    ]
+    tasks.withType(JavaCompile).all { JavaCompile compile ->
+      compile.options.compilerArgs = [
+        '-processor', processors.join(','),
+        '-processorpath', "${configurations.annotationProcessors.asPath}",
+        '-Awarns',
+        "-Xbootclasspath/p:${configurations.checkerFrameworkAnnotatedJDK.asPath}"
+      ]
+    }
+  }
+}
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs += '-AsuppressWarnings=initialization.fields.uninitialized'
+}

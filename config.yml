@@ -1,0 +1,43 @@
+appName: pernia-pwa-microservice
+template: Hello, %s!
+defaultName: Stranger
+server:
+ type: default
+ gzip:
+  bufferSize: 100KiB
+  deflateCompressionLevel: 7
+ maxThreads: 4096
+ requestLog:
+  appenders:
+    - type: file
+      threshold: ALL
+      currentLogFilename: ./run/logs/localhost_access_log.txt
+      archive: true
+      archivedLogFilenamePattern: ./run/logs/localhost_access_log-%d.txt
+      archivedFileCount: 30
+      timeZone: UTC
+      logFormat: "%i{X-Forwarded-For} %l %u %t %r %s %b %i{Referer} %i{User-Agent} %D %I %p"
+ allowedMethods:
+  - GET
+  - PUT
+  - POST
+ adminContextPath: /pernia-pwa-microservice/admin
+ applicationContextPath: /pernia-pwa-microservice/v1
+ applicationConnectors:
+  - type: http
+    port: 8045
+    maxRequestHeaderSize: 100KiB
+ adminConnectors:
+  - type: http
+    port: 8145
+swagger:
+  resourcePackage: com.pernia.pwa.resources
+  title: Pernia PWA API
+  version: 1.0.0
+  description: Micro Service to expose data for Pernia PWA
+  schemes:
+    - http
+requestTracker:
+  headerName: X-Correlation-Id
+  mdcKey: Correlation-Id
+whiteListedSubNets: "127.0,192.168, 172.16,220.225.53.129,202.160.171.59"

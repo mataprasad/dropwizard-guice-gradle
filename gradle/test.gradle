@@ -1,0 +1,129 @@
+buildscript {
+  repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
+  }
+}
+
+apply plugin: org.sonarqube.gradle.SonarQubePlugin
+apply plugin: org.gradle.testing.jacoco.plugins.JacocoPlugin
+
+project.ext {
+  jacocoVersion = pJacocoVersion
+}
+
+// Functional Tests
+configurations {
+  ftestCompile.extendsFrom testCompile
+  ftestRuntime.extendsFrom testRuntime
+}
+
+// Performance Tests
+configurations {
+  ptestCompile.extendsFrom testCompile
+  ptestRuntime.extendsFrom testRuntime
+}
+
+sourceSets {
+  ftest {
+    java {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/ftest/java')
+    }
+    resources.srcDir file('src/ftest/resources')
+  }
+  ptest {
+    java {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/ptest/java')
+    }
+    resources.srcDir file('src/ptest/resources')
+  }
+}
+
+task ftest(type: Test) {
+  useTestNG {
+    preserveOrder true
+  }
+  outputs.upToDateWhen { false }
+  testClassesDirs = sourceSets.ftest.output
+  classpath = sourceSets.ftest.runtimeClasspath
+  testLogging {
+    afterSuite { desc, result ->
+      if (!desc.parent) { // will match the outermost suite
+        println "Results: ${result.resultType} (${result.testCount} functional-tests, ${result.successfulTestCount} successes, " +
+          "${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+      }
+    }
+  }
+}
+
+task ptest(type: Test) {
+  useTestNG {
+    preserveOrder true
+  }
+  outputs.upToDateWhen { false }
+  testClassesDirs = sourceSets.ptest.output
+  classpath = sourceSets.ptest.runtimeClasspath
+  testLogging {
+    afterSuite { desc, result ->
+      if (!desc.parent) { // will match the outermost suite
+        println "Results: ${result.resultType} (${result.testCount} performance-tests, ${result.successfulTestCount} successes, " +
+          "${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+      }
+    }
+  }
+}
+
+test {
+  useTestNG()
+  jacoco {
+    append = false
+    destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+    classDumpDir = file("$buildDir/jacoco/classpathdumps")
+  }
+  testLogging {
+    afterSuite { desc, result ->
+      if (!desc.parent) { // will match the outermost suite
+        println "Results: ${result.resultType} (${result.testCount} unit-tests, ${result.successfulTestCount} successes, " +
+          "${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+      }
+    }
+  }
+}
+
+tasks.withType(Test) {
+  reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+// Jacoco
+jacoco {
+  toolVersion = jacocoVersion
+}
+
+jacocoTestReport {
+  group = "Reporting"
+  description = "Generate Jacoco coverage reports after running tests."
+  reports {
+    xml {
+      enabled true
+      destination file("${buildDir}/reports/jacoco/jacoco.xml")
+    }
+    csv.enabled false
+    html {
+      enabled true
+      destination file("${buildDir}/reports/jacoco/html")
+    }
+  }
+  additionalSourceDirs = files(sourceSets.main.allJava.srcDirs)
+}
+
+sonarqube {
+  properties {
+    property "sonar.jacoco.reportPath", "$buildDir/jacoco/jacocoTest.exec"
+  }
+}

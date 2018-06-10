@@ -1,0 +1,58 @@
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+}
+
+plugins {
+    id "java"
+}
+
+apply from: "$rootDir/gradle/dependencies.gradle"
+apply from: "$rootDir/gradle/codequality.gradle"
+apply from: "$rootDir/gradle/versioning.gradle"
+apply from: "$rootDir/gradle/distribution.gradle"
+apply from: "$rootDir/gradle/test.gradle"
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+project.ext {
+    dropwizardVersion = pDropwizardVersion
+}
+
+dependencies {
+    compile "com.hubspot.dropwizard:dropwizard-guice:1.0.6.0"
+    compile "com.serviceenabled:dropwizard-request-tracker:2.0.0"
+    compile "com.smoketurner:dropwizard-swagger:1.1.2-1"
+    compile 'com.jcabi:jcabi-manifests:1.1'
+    compile "io.dropwizard:dropwizard-core:$dropwizardVersion"
+    compile "io.dropwizard:dropwizard-client:$dropwizardVersion"
+    compile 'org.knowm:dropwizard-sundial:1.2.0'
+    compile "com.squareup.okhttp3:logging-interceptor:3.0.1"
+    compile "com.squareup.retrofit2:adapter-rxjava:2.1.0"
+    compile "io.reactivex:rxjava:1.0.12"
+    compile "io.dropwizard:dropwizard-jdbi:$dropwizardVersion"
+    compile "co.freeside.jdbi-time:jdbi-time:1.1"
+    compile 'com.github.ben-manes.caffeine:caffeine:2.6.2'
+    compile 'com.github.ben-manes.caffeine:guava:2.6.2'
+    compile 'com.github.ben-manes.caffeine:jcache:2.6.2'
+    compile group: 'com.fasterxml', name: 'aalto-xml', version: '1.0.0'
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '0.10.2.0'
+    compile group: 'org.apache.kafka', name: 'kafka-streams', version: '0.10.2.0'
+    compile group: 'org.springframework', name: 'spring-beans', version: '4.2.7.RELEASE'
+
+    testCompile "io.dropwizard:dropwizard-testing:$dropwizardVersion"
+    testCompile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
+}
+
+run {
+    dependsOn build
+    args 'server', "$configFile"
+    debug false
+}

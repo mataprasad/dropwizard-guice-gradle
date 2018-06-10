@@ -1,0 +1,56 @@
+buildscript {
+  repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+    maven { url "http://oss.sonatype.org/content/groups/public/" }
+    maven { url "http://oss.sonatype.org/content/repositories/snapshots" }
+    jcenter()
+  }
+  dependencies {
+    classpath 'org.ajoberstar:grgit:2.0.0'
+  }
+}
+
+project.ext {
+  git = org.ajoberstar.grgit.Grgit.open()
+  revision = git.head().abbreviatedId
+  fullVersion = pVersion + "-" + revision
+}
+
+task createTag {
+  description = 'Creates repository tag with current project version.'
+  ext.tagName = "v$fullVersion"
+
+  doLast {
+    logger.quiet "Creating tag '$tagName'."
+    // Remove potentially existing tag
+    git.tag.remove(names: [tagName])
+    // Create tag
+    git.tag.add {
+      name = tagName
+      message = "Version ${project.version}"
+    }
+  }
+}
+
+task pushTag {
+  description = 'Pushes tag to remote repository.'
+  dependsOn createTag
+  doLast {
+    logger.quiet "Pushing tag '$createTag.tagName' to remote."
+
+    git.push {
+      refsOrSpecs = [createTag.tagName]
+    }
+  }
+}
+
+task tag {
+  description = 'Creates and pushes tag to git remote repository.'
+  dependsOn pushTag
+//mustRunAfter nexusUpload
+}
+
+task release {
+  description = 'Publishes artifacts to nexus and tags repository with current project version.'
+//dependsOn assemble,dockerUpload, nexusUpload, tag
+}

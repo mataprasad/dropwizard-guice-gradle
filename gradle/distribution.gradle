@@ -1,0 +1,49 @@
+apply plugin: 'maven-publish'
+apply plugin: 'application'
+
+group = pGroup
+version = pVersion
+description = pDescription
+
+project.ext {
+  groupName = pGroup
+  artifactName = pArtifact
+  versionNumber = "release" == pArtifactory ? pVersion + "-RELEASE" : pVersion + "" + "-${revision}" + "-SNAPSHOT"
+  artifactoryRepo = "release" == pArtifactory ? "maven-releases" : "maven-snapshots"
+  nexusUser = pNexusUser
+  nexusPass = pNexusPass
+  configFile = pConfigFile
+}
+
+jar {
+  manifest {
+    attributes(
+      "Main-Class": pMainClassName,
+      "YT-Implementation-Version": fullVersion,
+      "YT-Implementation-Title": rootProject.name,
+      "YT-Implementation-Vendor": pGroup,
+      "YT-Built-By": System.getProperty("user.name"),
+      "YT-Built-Date": new Date(),
+      "YT-Built-Ip": InetAddress.getLocalHost(),
+      "YT-Built-Jdk": System.getProperty("java.version"),
+      "YT-Built-Gradle": gradle.gradleVersion,
+      "Guice-Modules": pGuiceModules
+    )
+  }
+}
+
+task copyConfig {
+  outputs.file new File("$buildDir/$configFile")
+  doLast {
+    copy {
+      from "$configFile"
+      into "$buildDir"
+    }
+  }
+}
+
+applicationDistribution.from(copyConfig) {
+  into "conf"
+}
+
+mainClassName = pMainClassName
