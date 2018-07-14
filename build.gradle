@@ -13,6 +13,7 @@ apply from: "$rootDir/gradle/codequality.gradle"
 apply from: "$rootDir/gradle/versioning.gradle"
 apply from: "$rootDir/gradle/distribution.gradle"
 apply from: "$rootDir/gradle/test.gradle"
+apply from: "$rootDir/gradle/dockerize.gradle"
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 

@@ -1,0 +1,128 @@
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+
+buildscript {
+repositories {
+	maven { url "https://plugins.gradle.org/m2/" }
+}
+dependencies {
+	classpath "com.bmuschko:gradle-docker-plugin:3.2.5"
+}
+}
+
+apply plugin: com.bmuschko.gradle.docker.DockerJavaApplicationPlugin
+
+project.ext {
+dockerRegistryUrl = pDockerRegistryUrl
+dockerRegistryUser = pDockerRegistryUser
+dockerRegistryPass = pDockerRegistryPass
+dockerRegistryEmail = pDockerRegistryEmail
+serviceName = pServiceName
+configFile = pConfigFile
+pversion = pVersion
+baseImage = pBaseImage
+imageMaintainer = pImageMaintainer
+}
+
+task createDockerfile(type: Dockerfile) {
+ext.targetRootFolder = '/data/psl/run'
+ext.appFolder = rootProject.name + "-" + pVersion
+ext.appName = rootProject.name
+ext.appTar = appFolder + '.tar'
+ext.targetFullAppFolder = targetRootFolder + "/" + appFolder
+ext.targetAppTar = targetFullAppFolder + '.tar'
+logger.quiet "Creating docker at '$targetFullAppFolder'."
+
+destFile = project.file('build/Dockerfile')
+from "$dockerRegistryUrl/$baseImage"
+
+environmentVariable("APPBINARY","$appName/bin/$appName")
+environmentVariable("CONFIGFILE","$appName/conf/config.yml")
+
+maintainer "$imageMaintainer"
+
+def labels = ['psl-release': fullVersion, message: 'Doe', 'app-type': 'microservice', 'product-name': serviceName]
+user "root"
+label labels
+logger.quiet "Copy distributions/$appFolder to /data/psl/run"
+addFile "distributions/$appTar", "$targetRootFolder"
+logger.quiet "exploding to $targetAppTar"
+runCommand "mv $targetRootFolder/$appFolder $targetRootFolder/$appName"
+user "root"
+exposePort 8080
+}
+
+task buildImage(type: DockerBuildImage) {
+description "Builds the PSL Docker image"
+dependsOn build
+dependsOn createDockerfile
+inputDir = createDockerfile.destFile.parentFile
+pull = true
+String imageTag = "$pversion-$revision"
+tag = "$dockerRegistryUrl/$dockerRegistryUser/$serviceName:$imageTag"
+}
+
+task tagImage(type: DockerTagImage) {
+dependsOn buildImage
+imageId buildImage.getTag()
+repository = "$dockerRegistryUrl/microservice/$serviceName"
+String imageTag = "$pversion-$revision"
+tag = imageTag
+}
+
+task pushDockerImage(type: DockerPushImage) {
+dependsOn tagImage
+description "Pushes created Docker image to the Docker hub public registry"
+imageName = "$dockerRegistryUrl/$dockerRegistryUser/$serviceName"
+String imageTag = "$pversion-$revision"
+tag = imageTag
+}
+
+task createAppContainer(type: DockerCreateContainer) {
+dependsOn buildImage
+targetImageId { buildImage.getImageId() }
+portBindings = ['8080:8080']
+}
+
+task startAppContainer(type: DockerStartContainer) {
+dependsOn createAppContainer
+targetContainerId { createAppContainer.getContainerId() }
+}
+
+task stopMyAppContainer(type: DockerStopContainer) {
+targetContainerId { createAppContainer.getContainerId() }
+}
+
+docker {
+url = dockerHostUrl()
+certPath = dockerCertPath()
+registryCredentials {
+	url = dockerRegistryUrl
+	username = dockerRegistryUser
+	password = dockerRegistryPass
+	email = dockerRegistryEmail
+}
+}
+
+URI dockerHostEnv() {
+String uri = System.getenv('DOCKER_HOST')
+uri ? new URI(uri) : null
+}
+
+String dockerHostUrl() {
+if (dockerHostEnv()) {
+	URI uri = dockerHostEnv()
+	if (uri.scheme == 'unix') {
+	uri
+	} else if (uri.scheme == 'tcp') {
+	(new URI(uri.scheme != 'tcp' ?: 'https', uri.userInfo, uri.host, uri.port, uri.path, uri.query, uri.fragment)).toString()
+	}
+} else {
+	'unix:///var/run/docker.sock'
+}
+}
+
+File dockerCertPath() {
+String certPathEnv = System.getenv('DOCKER_CERT_PATH')
+certPathEnv ? file(certPathEnv) : null;
+}
