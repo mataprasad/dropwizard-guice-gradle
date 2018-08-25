@@ -21,6 +21,7 @@ server:
   - GET
   - PUT
   - POST
+ rootPath: /app/*
  adminContextPath: /pernia-pwa-microservice/admin
  applicationContextPath: /pernia-pwa-microservice/v1
  applicationConnectors:

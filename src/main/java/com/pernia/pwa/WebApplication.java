@@ -27,6 +27,7 @@ import com.pernia.pwa.modules.ModuleWrapper;
 import com.pernia.pwa.resources.ProductResource;
 
 import io.dropwizard.Application;
+import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.setup.Bootstrap;
@@ -60,6 +61,7 @@ public class WebApplication extends Application<WebConfiguration> {
     bootstrap.addBundle(guiceBundle);
     bootstrap.addBundle(createSwaggerBundle());
     bootstrap.addBundle(createRequestTrackerBundle());
+    bootstrap.addBundle(new AssetsBundle("/assets", "/", "index.html"));
   }
 
   private GuiceBundle<WebConfiguration> createGuiceBundle() {
@@ -91,7 +93,7 @@ public class WebApplication extends Application<WebConfiguration> {
   public void run(final WebConfiguration configuration,
                   final Environment environment) {
     logger.info("Starting MO Web Service");
-
+    // environment.jersey().setUrlPattern("/*");
     environment.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     registerJerseyResources(environment);
     registerExceptionMapper(environment);

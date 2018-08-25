@@ -1,14 +1,12 @@
 package com.pernia.pwa.resources;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
@@ -45,6 +43,19 @@ public class ProductResource {
   public Saying sayHello(@QueryParam("productId") Optional<String> name,
                          @Context final HttpServletRequest servletRequest) {
     final String value = String.format(template, name.orElse(defaultName));
-    return new Saying(counter.incrementAndGet(), value);
+    Saying saying = new Saying();
+    saying.setContent(value);
+    saying.setId(counter.incrementAndGet());
+    return saying;
+  }
+
+  @GET
+  @Path("/a")
+  public Saying sayHello1(@BeanParam Saying obj) {
+
+    if (Objects.nonNull(obj)) {
+      obj.setId(counter.incrementAndGet());
+    }
+    return obj;
   }
 }
