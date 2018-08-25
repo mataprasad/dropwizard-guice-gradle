@@ -32,7 +32,6 @@ public class ModuleWrapper extends AbstractModule {
 
     bind(ProductResource.class);
     bind(TemplateHealthCheck.class);
-    bind(Saying.class);
   }
 
   @Provides

@@ -2,15 +2,10 @@ package com.pernia.pwa.api.request;
 
 import javax.ws.rs.QueryParam;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 
-@Getter
-@Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Data
 public class Saying {
 
   @QueryParam("id")

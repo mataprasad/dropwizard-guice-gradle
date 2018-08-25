@@ -57,10 +57,6 @@ public class ProductResource {
   @Path("/a")
   @GET
   public Saying sayHello1(final @BeanParam Saying obj) {
-
-    if (Objects.nonNull(obj)) {
-      obj.setId(counter.incrementAndGet());
-    }
     return obj;
   }
 }
