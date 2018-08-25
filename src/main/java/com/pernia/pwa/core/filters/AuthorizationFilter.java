@@ -29,7 +29,7 @@ public class AuthorizationFilter extends BaseFilter implements ContainerRequestF
   }
 
   @Override
-  public void filter(final ContainerRequestContext requestContext) throws IOException {
+  public void filter(final ContainerRequestContext requestContext) {
     logger.debug("Authorization filter invoked");
     String userIpAddress = getIpAddress(servletRequestProvider.get());
     if (!isExcludedUrl(requestContext) && !isRequestFromWhiteListedIp(userIpAddress)) {

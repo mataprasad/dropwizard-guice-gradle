@@ -9,7 +9,7 @@ import org.slf4j.MDC;
 import com.google.common.base.Splitter;
 
 class BaseFilter {
-  static final String RQ_REQUEST_TIME = "tg-request-time",
+  static final String RQ_REQUEST_TIME = "request-time",
       RQ_CORRELATION_ID = "Correlation-Id";
 
   private static final String AUTHORIZATION = "Authorization",

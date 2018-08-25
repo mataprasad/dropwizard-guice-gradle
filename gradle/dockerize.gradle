@@ -124,5 +124,5 @@ if (dockerHostEnv()) {
 
 File dockerCertPath() {
 String certPathEnv = System.getenv('DOCKER_CERT_PATH')
-certPathEnv ? file(certPathEnv) : null;
+certPathEnv ? file(certPathEnv) : null
 }

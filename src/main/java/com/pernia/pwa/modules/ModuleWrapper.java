@@ -6,7 +6,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
 import com.pernia.pwa.WebConfiguration;
-import com.pernia.pwa.api.request.Saying;
 import com.pernia.pwa.core.exception.mapper.*;
 import com.pernia.pwa.core.filters.EntryFilter;
 import com.pernia.pwa.core.filters.ExitFilter;

@@ -20,7 +20,7 @@ public class EntryFilter extends BaseFilter implements ContainerRequestFilter {
   private javax.inject.Provider<HttpServletRequest> servletRequestProvider;
 
   @Override
-  public void filter(final ContainerRequestContext requestContext) throws IOException {
+  public void filter(final ContainerRequestContext requestContext) {
     logger.debug("EntryFilter invoked");
     String correlationId = getCorrelationId();
     servletRequestProvider.get().setAttribute(RQ_CORRELATION_ID, correlationId);

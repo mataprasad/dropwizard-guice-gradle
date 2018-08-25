@@ -26,8 +26,7 @@ public class ResponseMetaFilter extends BaseFilter implements ContainerResponseF
 
   @Override
   public void filter(final ContainerRequestContext requestContext,
-                     final ContainerResponseContext responseContext)
-      throws IOException {
+                     final ContainerResponseContext responseContext) {
     try {
       logger.debug("ResponseMetaFilter invoked");
       setResponseEntity(responseContext);

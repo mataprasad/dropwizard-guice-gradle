@@ -1,9 +1,7 @@
 package com.pernia.pwa.resources;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;

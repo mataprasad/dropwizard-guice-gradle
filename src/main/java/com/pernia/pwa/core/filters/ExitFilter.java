@@ -17,8 +17,7 @@ public class ExitFilter extends BaseFilter implements ContainerResponseFilter {
 
   @Override
   public void filter(final ContainerRequestContext requestContext,
-                     final ContainerResponseContext responseContext)
-      throws IOException {
+                     final ContainerResponseContext responseContext) {
     logger.debug("ExitFilter invoked");
     MDC.clear();
   }

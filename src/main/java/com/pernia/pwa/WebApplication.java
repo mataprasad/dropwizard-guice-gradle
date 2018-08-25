@@ -92,7 +92,7 @@ public class WebApplication extends Application<WebConfiguration> {
   @Override
   public void run(final WebConfiguration configuration,
                   final Environment environment) {
-    logger.info("Starting MO Web Service");
+    logger.info("Starting Web Service");
     // environment.jersey().setUrlPattern("/*");
     environment.getObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
     registerJerseyResources(environment);
