@@ -2,6 +2,7 @@ package com.pernia.pwa.resources;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.inject.Inject;
@@ -14,6 +15,7 @@ import com.codahale.metrics.annotation.Timed;
 
 import com.pernia.pwa.api.request.Saying;
 
+import io.dropwizard.jersey.caching.CacheControl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -21,19 +23,22 @@ import io.swagger.annotations.ApiResponses;
 
 @Path("/products")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Api(value = "/products")
+@CacheControl(noCache = true)
 public class ProductResource {
   private final String template;
   private final String defaultName;
-  private final AtomicLong counter;
+  private final AtomicInteger counter;
 
   @Inject
   public ProductResource() {
     this.template = "template %s";
     this.defaultName = "defaultName";
-    this.counter = new AtomicLong();
+    this.counter = new AtomicInteger();
   }
 
+  @Path("/")
   @GET
   @ApiOperation(value = "Product Details", tags = "Product Details",
       notes = "Fetch the product information for given product id")
@@ -49,9 +54,9 @@ public class ProductResource {
     return saying;
   }
 
-  @GET
   @Path("/a")
-  public Saying sayHello1(@BeanParam Saying obj) {
+  @GET
+  public Saying sayHello1(final @BeanParam Saying obj) {
 
     if (Objects.nonNull(obj)) {
       obj.setId(counter.incrementAndGet());
